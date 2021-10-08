@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using VeraDemoNet.Models;
@@ -46,7 +48,9 @@ namespace VeraDemoNet.Controllers
 
         private string Ping(string host)
         {
-            if (string.IsNullOrEmpty(host))
+            Uri resultURI;
+            var isValid = ValidHttpURL(host,out resultURI);
+            if (!isValid)
             {
                 return "";
             }
@@ -56,7 +60,7 @@ namespace VeraDemoNet.Controllers
             {
                 // START BAD CODE
                 var fileName = "cmd.exe";
-                var arguments = "/c ping " + host;
+                var arguments = "/c ping " + resultURI.AbsoluteUri;
                 // END BAD CODE
 
                 var proc = CreateStdOutProcess(fileName, arguments);
@@ -79,9 +83,10 @@ namespace VeraDemoNet.Controllers
 
         private string Fortune(string fortuneFile)
         {
+            var whiteFileList = new List<string>{ "funny.txt", "offensive.txt" };
             var output = new StringBuilder();
 
-            if (string.IsNullOrEmpty(fortuneFile)) 
+            if (string.IsNullOrEmpty(fortuneFile) || !whiteFileList.Contains(fortuneFile)) 
             {
                 fortuneFile = "funny.txt";
             }
@@ -125,6 +130,18 @@ namespace VeraDemoNet.Controllers
                 }
             };
             return proc;
+        }
+
+        public static bool ValidHttpURL(string s, out Uri resultURI)
+        {
+            if (!Regex.IsMatch(s, @"^https?:\/\/", RegexOptions.IgnoreCase))
+                s = "http://" + s;
+
+            if (Uri.TryCreate(s, UriKind.Absolute, out resultURI))
+                return (resultURI.Scheme == Uri.UriSchemeHttp ||
+                        resultURI.Scheme == Uri.UriSchemeHttps);
+
+            return false;
         }
     }
 }
