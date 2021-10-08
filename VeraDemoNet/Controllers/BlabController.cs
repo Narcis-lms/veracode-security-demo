@@ -63,6 +63,7 @@ namespace VeraDemoNet.Controllers
             "GROUP BY users.username,users.blab_name, users.created_at " +
             "ORDER BY {0}";
 
+        private List<Type> whiteListBlabCommands = new List<Type> { typeof(IgnoreCommand), typeof(ListenCommand) };
         public BlabController()
         {
             logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);    
@@ -303,11 +304,13 @@ namespace VeraDemoNet.Controllers
                     dbContext.Database.Connection.Open();
 
                     var commandType = Type.GetType("VeraDemoNet.Commands." + UpperCaseFirst(command) + "Command");
-
-                    /* START BAD CODE */
-                    var cmdObj = (IBlabberCommand) Activator.CreateInstance(commandType, dbContext.Database.Connection, username);
-                    cmdObj.Execute(blabberUsername);
-                    /* END BAD CODE */
+                    if (whiteListBlabCommands.Contains(commandType))
+                    {
+                        /* START BAD CODE */
+                        var cmdObj = (IBlabberCommand)Activator.CreateInstance(commandType, dbContext.Database.Connection, username);
+                        cmdObj.Execute(blabberUsername);
+                        /* END BAD CODE */
+                    }
                 }
             }
             catch (Exception ex)
