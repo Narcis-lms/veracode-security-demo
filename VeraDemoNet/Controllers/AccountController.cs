@@ -385,12 +385,15 @@ namespace VeraDemoNet.Controllers
 
         private void PopulateProfileViewModel(DbConnection connect, string username, ProfileViewModel viewModel)
         {
-            string sqlMyProfile = "SELECT username, real_name, blab_name, is_admin FROM users WHERE username = '" + username + "'";
+            //string sqlMyProfile = "SELECT username, real_name, blab_name, is_admin FROM users WHERE username = '" + username + "'";
+            string sqlMyProfile = "SELECT username, real_name, blab_name, is_admin FROM users WHERE username = @username";
+
             logger.Info(sqlMyProfile);
 
             using (var eventsCommand = connect.CreateCommand())
             {
                 eventsCommand.CommandText = sqlMyProfile;
+                eventsCommand.Parameters.Add(new SqlParameter("@username", username));
                 using (var userProfile = eventsCommand.ExecuteReader())
                 {
                     if (userProfile.Read())
@@ -474,14 +477,14 @@ namespace VeraDemoNet.Controllers
         private List<string> RetrieveMyEvents(DbConnection connect, string username)
         {
             // START BAD CODE
-            var sqlMyEvents = "select event from users_history where blabber='" +
-                              username + "' ORDER BY eventid DESC; ";
+            var sqlMyEvents = "select event from users_history where blabber='" + username + "' ORDER BY eventid DESC; ";
             logger.Info(sqlMyEvents);
 
             var myEvents = new List<string>();
             using (var eventsCommand = connect.CreateCommand())
             {
-                eventsCommand.CommandText = sqlMyEvents;
+                eventsCommand.CommandText = "select event from users_history where blabber =  @username  ORDER BY eventid DESC; ";
+                eventsCommand.Parameters.Add(new SqlParameter("@username", username));
                 using (var userHistoryResult = eventsCommand.ExecuteReader())
                 {
                     while (userHistoryResult.Read())
@@ -536,23 +539,29 @@ namespace VeraDemoNet.Controllers
         }
 
         [HttpPost, ActionName("RegisterFinish")]
-        public ActionResult PostRegisterFinish(User user, string cpassword)
+        public ActionResult PostRegisterFinish([Bind(Include = " UserName, RealName, BlabName")] RegisterViewModel userVM, string password, string cpassword)
         {
-            if (user.Password != cpassword)
+            if (password != cpassword)
             {
                 logger.Info("Password and Confirm Password do not match");
                 return View(new RegisterViewModel
                 {
                     Error = "The Password and Confirm Password values do not match. Please try again.",
-                    UserName = user.UserName,
-                    RealName = user.RealName,
-                    BlabName = user.BlabName,
+                    UserName = userVM.UserName,
+                    RealName = userVM.RealName,
+                    BlabName = userVM.BlabName,
                 });
             }
 
-            // Use the user class to get the hashed password.
-            user.Password = Md5Hash(user.Password);
-            user.CreatedAt = DateTime.Now;
+            var user = new User
+            {
+                // Use the user class to get the hashed password.
+                Password = Md5Hash(password),
+                CreatedAt = DateTime.Now,
+                UserName = userVM.UserName,
+                RealName = userVM.RealName,
+                BlabName = userVM.BlabName
+            };
 
             using (var dbContext = new BlabberDB())
             {
