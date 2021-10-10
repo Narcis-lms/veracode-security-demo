@@ -19,7 +19,7 @@ namespace VeraDemoNet.Controllers
             {
                 var found = dbContext.Database.SqlQuery<BasicUser>(
                     "select username, real_name as realname, blab_name as blabname, is_admin as isadmin from users where username ='"
-                    + userName + "' and password='" + Md5Hash(passWord) + "';").ToList();
+                    + userName + "' and password='" + SHA256Hash(passWord) + "';").ToList();
 
                 if (found.Count != 0)
                 {
@@ -70,6 +70,28 @@ namespace VeraDemoNet.Controllers
             using (MD5 md5 = MD5.Create())
             {
                 var retVal = md5.ComputeHash(Encoding.Unicode.GetBytes(input));
+
+                foreach (var t in retVal)
+                {
+                    sb.Append(t.ToString("x2"));
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        //https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca5351
+        protected static string SHA256Hash(string input)
+        {
+            var sb = new StringBuilder();
+            if (string.IsNullOrEmpty(input))
+            {
+                return sb.ToString();
+            }
+
+            using (var sha256 = SHA256.Create())
+            {
+                var retVal = sha256.ComputeHash(Encoding.Unicode.GetBytes(input));
 
                 foreach (var t in retVal)
                 {
