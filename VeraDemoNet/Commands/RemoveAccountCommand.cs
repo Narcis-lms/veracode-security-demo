@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 
 namespace VeraDemoNet.Commands
 {
@@ -34,12 +35,15 @@ namespace VeraDemoNet.Commands
             var removeEvent = "Removed account for blabber " + result;
             sqlQuery = "INSERT INTO users_history (blabber, event) VALUES ('" + blabberUsername + "', '" + removeEvent + "')";
             logger.Info(sqlQuery);
-            sqlStatement.CommandText = sqlQuery;
+            sqlStatement.CommandText = "INSERT INTO users_history (blabber, event) VALUES (@blabberUsername ,@removeEvent)";
+            sqlStatement.Parameters.Add(new SqlParameter("@blabberUsername", blabberUsername));
+            sqlStatement.Parameters.Add(new SqlParameter("@removeEvent", removeEvent));
             sqlStatement.ExecuteNonQuery();
 		
             sqlQuery = "DELETE FROM users WHERE username = '" + blabberUsername + "'";
             logger.Info(sqlQuery);
-            sqlStatement.CommandText = sqlQuery;
+            sqlStatement.CommandText = "DELETE FROM users WHERE username = @blabberUsername";
+            sqlStatement.Parameters.Add(new SqlParameter("@blabberUsername", blabberUsername));
             sqlStatement.ExecuteNonQuery();
             /* END BAD CODE */
         }

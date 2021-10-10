@@ -51,7 +51,9 @@ namespace VeraDemoNet.Commands
             using (var sqlStatement = connect.CreateCommand())
             {
                 logger.Info(eventQuery);
-                sqlStatement.CommandText = eventQuery;
+                sqlStatement.CommandText = "INSERT INTO users_history (blabber, event) VALUES (@username, @listeningEvent)";
+                sqlStatement.Parameters.Add(new SqlParameter("@username", username));
+                sqlStatement.Parameters.Add(new SqlParameter("@listeningEvent", listeningEvent));
                 sqlStatement.ExecuteNonQuery();
             }
 
