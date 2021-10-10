@@ -13,6 +13,7 @@ using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.WebPages;
+using System.Xml;
 using Newtonsoft.Json;
 using VeraDemoNet.DataAccess;
 using VeraDemoNet.Models;
@@ -60,14 +61,18 @@ namespace VeraDemoNet.Controllers
 
             using (MemoryStream memoryStream = new MemoryStream(unencodedUserDetails))
             {
-                var binaryFormatter = new BinaryFormatter();
+                //var binaryFormatter = new BinaryFormatter();
 
                 // set memory stream position to starting point
                 memoryStream.Position = 0;
 
                 // Deserializes a stream into an object graph and return as a object.
                 /* START BAD CODE */
-                deserializedUser = binaryFormatter.Deserialize(memoryStream) as CustomSerializeModel;
+                //deserializedUser = binaryFormatter.Deserialize(memoryStream) as CustomSerializeModel;
+                var reader = XmlDictionaryReader.CreateTextReader(memoryStream, new XmlDictionaryReaderQuotas());
+                var ser = new DataContractSerializer(typeof(CustomSerializeModel));
+
+                deserializedUser = (CustomSerializeModel)ser.ReadObject(reader, true);
                 /* END BAD CODE */
                 logger.Info("User details were retrieved for user: " + deserializedUser.UserName);
             }
@@ -109,8 +114,10 @@ namespace VeraDemoNet.Controllers
 
                         using (var userModelStream = new MemoryStream())
                         {
-                            IFormatter formatter = new BinaryFormatter();
-                            formatter.Serialize(userModelStream, userModel);
+                            //IFormatter formatter = new BinaryFormatter();
+                            //formatter.Serialize(userModelStream, userModel);
+                            DataContractSerializer ser =new DataContractSerializer(typeof(CustomSerializeModel));
+                            ser.WriteObject(userModelStream, userModel);
                             var faCookie =
                                 new HttpCookie(COOKIE_NAME, Convert.ToBase64String(userModelStream.GetBuffer()))
                                 {
@@ -556,7 +563,7 @@ namespace VeraDemoNet.Controllers
             var user = new User
             {
                 // Use the user class to get the hashed password.
-                Password = Md5Hash(password),
+                Password = SHA256Hash(password),
                 CreatedAt = DateTime.Now,
                 UserName = userVM.UserName,
                 RealName = userVM.RealName,
