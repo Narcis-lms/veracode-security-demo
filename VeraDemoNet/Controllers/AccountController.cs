@@ -12,6 +12,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
+using System.Web.SessionState;
 using System.Web.WebPages;
 using System.Xml;
 using Newtonsoft.Json;
@@ -53,6 +54,10 @@ namespace VeraDemoNet.Controllers
                 ViewBag.ReturnUrl = ReturnUrl;
                 return View();
             }
+
+            var sm = new SessionIDManager();
+            string newId = sm.CreateSessionID(System.Web.HttpContext.Current);
+            sm.SaveSessionID(System.Web.HttpContext.Current, newId, out _, out _);
 
             logger.Info("User details were remembered");
             var unencodedUserDetails = Convert.FromBase64String(userDetailsCookie.Value);
@@ -126,7 +131,7 @@ namespace VeraDemoNet.Controllers
                             Response.Cookies.Add(faCookie);
                         }
                     }
-
+                
                     return GetValidAction(ReturnUrl);
                 }
             }
@@ -135,12 +140,16 @@ namespace VeraDemoNet.Controllers
                 ModelState.AddModelError("CustomError", ex.Message);
             }
 
+            
             return View(loginViewModel);
 
         }
 
         private ActionResult GetValidAction(string ReturnUrl)
         {
+            
+
+
             //if (Url.IsLocalUrl(ReturnUrl))  
             if (string.IsNullOrEmpty(ReturnUrl) || !Url.IsLocalUrl(ReturnUrl))
             {
@@ -149,6 +158,7 @@ namespace VeraDemoNet.Controllers
 
             /* START BAD CODE */
 
+           
             return Redirect(ReturnUrl);
             /* END BAD CODE */
         }
