@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using VeraDemoNet.DataAccess;
+using VeraDemoNet.Helper;
 
 namespace VeraDemoNet.Controllers
 {
@@ -146,7 +147,7 @@ namespace VeraDemoNet.Controllers
                             var blabber = _veraUsers[i].UserName;
                             var listener = _veraUsers[j].UserName;
 
-                            logger.Info("Adding " + listener + " as a listener of " + blabber);
+                            logger.Info("Adding " + listener.CleanValue() + " as a listener of " + blabber.CleanValue());
 
                             listenersStatement.Parameters.Add(blabber);
                             listenersStatement.Parameters.Add(listener);
@@ -167,7 +168,7 @@ namespace VeraDemoNet.Controllers
 
             foreach (var user in _veraUsers)
             {
-                logger.Info("Adding user " + user.UserName);
+                logger.Info("Adding user " + user.UserName.CleanValue());
                 context.Users.Add(user);
             }
             context.SaveChanges();
@@ -201,7 +202,7 @@ namespace VeraDemoNet.Controllers
                     long vary = rand.Next(30 * 24 * 3600);
 
                     var username = _veraUsers[randomUserOffset].UserName;
-                    logger.Info("Adding a blab for " + username);
+                    logger.Info("Adding a blab for " + username.CleanValue());
 
                     blabsStatement.Parameters.Add(new SqlParameter {ParameterName = "@blabber", Value = username});
                     blabsStatement.Parameters.Add(new SqlParameter {ParameterName = "@content", Value = blabContent});
@@ -252,7 +253,7 @@ namespace VeraDemoNet.Controllers
                         // get the number of seconds until some time in the last 30 days.
                         long vary = rand.Next(30 * 24 * 3600);
 
-                        logger.Info("Adding a comment from " + username + " on blab ID " + Convert.ToString(i));
+                        logger.Info("Adding a comment from " + username.CleanValue() + " on blab ID " + Convert.ToString(i));
                         commentsStatement.Parameters.Add(new SqlParameter {ParameterName = "@blabid", Value = i}  );
                         commentsStatement.Parameters.Add(new SqlParameter {ParameterName = "@blabber", Value = username}  );
                         commentsStatement.Parameters.Add(new SqlParameter {ParameterName = "@content", Value = comment}  );

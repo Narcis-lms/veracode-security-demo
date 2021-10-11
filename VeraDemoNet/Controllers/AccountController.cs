@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SqlClient;
@@ -8,17 +9,14 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.SessionState;
-using System.Web.WebPages;
 using System.Xml;
-using Newtonsoft.Json;
 using VeraDemoNet.DataAccess;
 using VeraDemoNet.Models;
-
+using VeraDemoNet.Helper;
 namespace VeraDemoNet.Controllers
 {
     // https://www.c-sharpcorner.com/article/custom-authentication-with-asp-net-mvc/
@@ -27,6 +25,7 @@ namespace VeraDemoNet.Controllers
         protected readonly log4net.ILog logger;
 
         private const string COOKIE_NAME = "UserDetails";
+       
 
         public AccountController()
         {
@@ -36,7 +35,7 @@ namespace VeraDemoNet.Controllers
         [HttpGet, ActionName("Login")]
         public ActionResult GetLogin(string ReturnUrl = "")
         {
-            logger.Info("Login page visited: " + ReturnUrl);
+            logger.Info("Login page visited: " + ReturnUrl.CleanValue());
 
             if (IsUserLoggedIn())
             {
@@ -79,7 +78,7 @@ namespace VeraDemoNet.Controllers
 
                 deserializedUser = (CustomSerializeModel)ser.ReadObject(reader, true);
                 /* END BAD CODE */
-                logger.Info("User details were retrieved for user: " + deserializedUser.UserName);
+                logger.Info("User details were retrieved for user: " + deserializedUser.UserName.CleanValue());
             }
 
             Session["username"] = deserializedUser.UserName;
@@ -303,7 +302,7 @@ namespace VeraDemoNet.Controllers
         [AllowAnonymous]
         public ActionResult GetPasswordHint(string userName)
         {
-            logger.Info("Entering password-hint with username: " + userName);
+            logger.Info("Entering password-hint with username: " + userName.CleanValue());
 
             if (string.IsNullOrEmpty(userName))
             {
