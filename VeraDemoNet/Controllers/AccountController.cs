@@ -435,6 +435,11 @@ namespace VeraDemoNet.Controllers
                 return RedirectToLogin(HttpContext.Request.RawUrl);
             }
 
+            if(!image.EndsWith(".png"))
+            {
+                return RedirectToAction("AccessDenied", "Error");
+            }
+
             var imagePath = Path.Combine(HostingEnvironment.MapPath("~/Images/"), image);
 
             logger.Info("Fetching profile image: " + imagePath);
